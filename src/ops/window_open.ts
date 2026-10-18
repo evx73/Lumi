@@ -17,6 +17,26 @@ export default async function window_open(
     height: 600
   });
 
+  // Default editor zoom and keyboard shortcuts.
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.setZoomFactor(0.7);
+  });
+
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || !input.control) return;
+    const wc = win.webContents;
+    if (input.key === '-' || input.code === 'NumpadSubtract') {
+      wc.setZoomFactor(Math.max(0.4, wc.getZoomFactor() - 0.1));
+      event.preventDefault();
+    } else if (input.key === '=' || input.key === '+' || input.code === 'NumpadAdd') {
+      wc.setZoomFactor(Math.min(2, wc.getZoomFactor() + 0.1));
+      event.preventDefault();
+    } else if (input.key === '0') {
+      wc.setZoomFactor(1);
+      event.preventDefault();
+    }
+  });
+
   if (path) {
     try {
       win.loadURL(

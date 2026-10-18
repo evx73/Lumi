@@ -1,0 +1,10 @@
+diff --git a/scripts/echo360.js b/scripts/echo360.js
+--- a/scripts/echo360.js
++++ b/scripts/echo360.js
+@@ -226,5 +226,5 @@
+         previousTickMS = time;
+       }
+       else {
+-        delete previousTickMS;
++        previousTickMS = undefined;
+       }

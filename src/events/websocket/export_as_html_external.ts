@@ -1,4 +1,5 @@
 import * as SocketIO from 'socket.io';
+import { rememberExport } from '../../ops/publication';
 
 import { Context } from '../../boot';
 import window_backdrop_hide from '../../ops/window_backdrop_hide';
@@ -34,6 +35,7 @@ export default function event_websocket_export_as_html_external(
       options
     );
 
+    await rememberExport(file_path, 'external', options);
     await window_backdrop_hide(context, contentId);
     await window_snackbar_show(
       context,
