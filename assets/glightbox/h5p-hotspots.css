@@ -1,0 +1,54 @@
+/* Frameless responsive media slides in GLightbox */
+.glightbox-container .gslide-inline,
+.glightbox-container .gslide-inline .ginlined-content,
+.glightbox-container .gslide-inline .gslide-media {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+.glightbox-container .gslide-inline .gslide-media {
+  width: min(94vw, 1400px) !important;
+  max-width: 94vw !important;
+  max-height: 92vh !important;
+}
+.glightbox-container .lumi-glightbox-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 94vw;
+  max-height: 92vh;
+  overflow: visible !important;
+}
+.glightbox-container .lumi-glightbox-action .h5p-image,
+.glightbox-container .lumi-glightbox-action .h5p-image > div,
+.glightbox-container .lumi-glightbox-action .h5p-image img,
+.glightbox-container .lumi-glightbox-action img,
+.glightbox-container .lumi-glightbox-action video {
+  width: auto !important;
+  height: auto !important;
+  max-width: 94vw !important;
+  max-height: 90vh !important;
+  object-fit: contain !important;
+}
+.glightbox-container .lumi-glightbox-action .h5p-image img {
+  display: block;
+}
+.glightbox-container .lumi-glightbox-action .h5p-image,
+.glightbox-container .lumi-glightbox-action .h5p-image > div {
+  overflow: visible !important;
+}
+.glightbox-container .gslide-inline .gslide-media,
+.glightbox-container .gslide-inline .ginlined-content {
+  overflow: visible !important;
+}
+.glightbox-container .lumi-glightbox-action:has(.h5p-text),
+.glightbox-container .lumi-glightbox-action:has(audio) {
+  overflow: auto !important;
+  color: #222;
+  background: white;
+  padding: 20px;
+  max-height: 85vh;
+}

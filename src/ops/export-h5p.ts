@@ -17,6 +17,28 @@ import reporterTemplate from './templates/reporter';
 
 // const t = i18next.getFixedT(null, 'lumi');
 
+/**
+ * Embed GLightbox locally in HTML exports so they work without a CDN.
+ * The adapter only replaces multi-item ImageHotspots popups.
+ */
+async function addHotspotLightbox(html: string): Promise<string> {
+  if (!html.includes('H5P.ImageHotspots')) return html;
+  const assetDir = _path.join(__dirname, '../../../assets/glightbox');
+  const [css, customCss, presentationCss, javascript, zoom, adapter, presentationFit] = await Promise.all([
+    fsExtra.readFile(_path.join(assetDir, 'glightbox.min.css'), 'utf8'),
+    fsExtra.readFile(_path.join(assetDir, 'h5p-hotspots.css'), 'utf8'),
+    fsExtra.readFile(_path.join(assetDir, 'presentation-mobile.css'), 'utf8'),
+    fsExtra.readFile(_path.join(assetDir, 'glightbox.min.js'), 'utf8'),
+    fsExtra.readFile(_path.join(assetDir, 'image-zoom.js'), 'utf8'),
+    fsExtra.readFile(_path.join(assetDir, 'h5p-hotspots-adapter.js'), 'utf8'),
+    fsExtra.readFile(_path.join(assetDir, 'presentation-fit.js'), 'utf8')
+  ]);
+  const headEnd = html.lastIndexOf('</head>');
+  if (headEnd < 0) return html;
+  const injected = `<style>${css}\n${customCss}\n${presentationCss}</style><script>${javascript}</script><script>${zoom}</script><script>${adapter}</script><script>${presentationFit}</script>`;
+  return html.slice(0, headEnd) + injected + html.slice(headEnd);
+}
+
 const cleanAndTrim = (text: string): string => {
   const textClean = text.replace(/[^a-zA-Z\d\s]/g, '');
   return textClean.replace(/\s/g, '');
@@ -153,7 +175,7 @@ async function exportHtmlExternal(
         showFrame: options.showEmbed || options.showRights
       }
     );
-  await fsExtra.writeFile(path, html);
+  await fsExtra.writeFile(path, await addHotspotLightbox(html));
   // eslint-disable-next-line no-restricted-syntax
   for (const filename of contentFiles) {
     const fn = _path.join(dir, basename, filename);
@@ -245,7 +267,7 @@ export default async function exportH5P(
       showFrame: options.showEmbed || options.showRights,
       showLicenseButton: options.showRights
     });
-    await fsExtra.writeFile(filePath, html);
+    await fsExtra.writeFile(filePath, await addHotspotLightbox(html));
   } else if (options.format === 'external') {
     await exportHtmlExternal(
       htmlExporter,

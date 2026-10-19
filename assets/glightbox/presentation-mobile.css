@@ -1,0 +1,33 @@
+/* Exported Interactive Book: one navigation bar, viewport-fitted hotspot plans. */
+@media screen {
+  html, body { margin: 0; overflow: hidden !important; width: 100%; height: 100%; }
+  .h5p-content, .h5p-interactive-book {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+  .h5p-interactive-book .h5p-interactive-book-status-footer,
+  .h5p-interactive-book .h5p-interactive-book-summary-footer {
+    display: none !important;
+  }
+  .h5p-interactive-book .h5p-interactive-book-main,
+  .h5p-interactive-book .h5p-interactive-book-content,
+  .h5p-interactive-book .h5p-interactive-book-chapter {
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .h5p-interactive-book .h5p-interactive-book-content {
+    flex: 1;
+    padding: 0 !important;
+  }
+  .h5p-interactive-book .h5p-image-hotspots-container {
+    width: var(--lumi-image-fit-width, 100%) !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+  }
+  .h5p-interactive-book .h5p-image-hotspots-background {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+  }
+}
