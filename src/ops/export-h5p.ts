@@ -1,4 +1,5 @@
 import _path from 'path';
+import { createHash } from 'crypto';
 import fsExtra from 'fs-extra';
 import promisePipe from 'promisepipe';
 import { withDir } from 'tmp-promise';
@@ -175,7 +176,20 @@ async function exportHtmlExternal(
         showFrame: options.showEmbed || options.showRights
       }
     );
-  await fsExtra.writeFile(path, await addHotspotLightbox(html));
+  const exportedImages = new Map<string, string>();
+  const imageAliases = new Map<string, string>();
+  const imageDir = _path.join(dir, basename, 'images');
+  if (await fsExtra.pathExists(imageDir)) {
+    const existing = (await fsExtra.readdir(imageDir)).sort();
+    for (const name of existing) {
+      if (!/\.(jpe?g|png)$/i.test(name)) continue;
+      const file = _path.join(imageDir, name);
+      if (!(await fsExtra.stat(file)).isFile()) continue;
+      const bytes = await fsExtra.readFile(file);
+      const hash = createHash('sha256').update(bytes).digest('hex');
+      if (!exportedImages.has(hash)) exportedImages.set(hash, basename + '/images/' + name);
+    }
+  }
   // eslint-disable-next-line no-restricted-syntax
   for (const filename of contentFiles) {
     const fn = _path.join(dir, basename, filename);
@@ -191,7 +205,44 @@ async function exportHtmlExternal(
       outputStream
     );
     outputStream.close();
+    if (/\.(jpe?g|png)$/i.test(filename)) {
+      // Match embedded data URIs to their already-exported image files.
+      // eslint-disable-next-line no-await-in-loop
+      const bytes = await fsExtra.readFile(fn);
+      const hash = createHash('sha256').update(bytes).digest('hex');
+      const relative = basename + '/' + filename.replace(/\\/g, '/');
+      const canonical = exportedImages.get(hash);
+      if (canonical && canonical !== relative) {
+        imageAliases.set(relative, canonical);
+        // eslint-disable-next-line no-await-in-loop
+        await fsExtra.remove(fn);
+      } else {
+        exportedImages.set(hash, relative);
+      }
+    }
   }
+  let optimizedHtml = html;
+  imageAliases.forEach((canonical, generated) => {
+    optimizedHtml = optimizedHtml.split(generated).join(canonical);
+  });
+  optimizedHtml = optimizedHtml.replace(
+    /data:image\/(?:jpeg|png);base64,[A-Za-z0-9+/=]+/g,
+    (uri) => {
+      const bytes = Buffer.from(uri.slice(uri.indexOf(',') + 1), 'base64');
+      const hash = createHash('sha256').update(bytes).digest('hex');
+      return exportedImages.get(hash) || uri;
+    }
+  );
+  // The exporter may retain an H5P.getPath wrapper that prefixes ordinary
+  // paths. Our matched external images already include the export directory.
+  const externalPathFix = `<script>(function(){var original=H5P.getPath;H5P.getPath=function(p,id){return typeof p==='string'&&p.indexOf(${JSON.stringify(
+    `${basename}/`
+  )})===0?p:original.call(this,p,id);};})();</script>`;
+  const headEnd = optimizedHtml.lastIndexOf('</head>');
+  const fixedHtml = headEnd < 0
+    ? optimizedHtml
+    : optimizedHtml.slice(0, headEnd) + externalPathFix + optimizedHtml.slice(headEnd);
+  await fsExtra.writeFile(path, await addHotspotLightbox(fixedHtml));
 }
 
 /**

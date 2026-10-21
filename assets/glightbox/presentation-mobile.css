@@ -20,14 +20,22 @@
     flex: 1;
     padding: 0 !important;
   }
-  .h5p-interactive-book .h5p-image-hotspots-container {
-    width: var(--lumi-image-fit-width, 100%) !important;
-    max-width: 100% !important;
-    margin: 0 auto !important;
+  /* Disable Interactive Book's native chapter slide-in/out transition. */
+  .h5p-interactive-book .h5p-interactive-book-chapter,
+  .h5p-interactive-book .h5p-interactive-book-animate {
+    transition: none !important;
+    animation: none !important;
   }
-  .h5p-interactive-book .h5p-image-hotspots-background {
-    display: block;
-    width: 100% !important;
-    height: auto !important;
+  /* H5P applies animated transitions to hotspot elements. The viewport fit
+     must be instantaneous, not animated from the original image dimensions. */
+  .h5p-interactive-book .h5p-image-hotspots-container,
+  .h5p-interactive-book .h5p-image-hotspots-background,
+  .h5p-interactive-book .h5p-image-hotspot {
+    transition: none !important;
+    animation: none !important;
+  }
+  /* Hide until the image and hotspot container have been fitted together. */
+  .h5p-interactive-book .h5p-image-hotspots-container:not([data-lumi-fitted]) {
+    visibility: hidden !important;
   }
 }
