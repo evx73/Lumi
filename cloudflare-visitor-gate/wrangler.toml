@@ -1,0 +1,8 @@
+name = "lumi-visitor-gate"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lumi-visitors"
+database_id = "40f6099b-06da-4cbf-8e80-d7cc817bb0ee"

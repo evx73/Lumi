@@ -16,6 +16,8 @@ import saveContent from './controller/save-content';
 import getSettings from './controller/get-settings';
 // import i18nextHttpMiddleware from 'i18next-http-middleware';
 import renderContent from './controller/render-content';
+import linkedImage from './controller/linked-image';
+import selectLinkedImage from './controller/select-linked-image';
 
 /**
  * Creates the main Express app.
@@ -53,6 +55,8 @@ export default async (
   );
 
   app.use(renderContent);
+  app.use(linkedImage);
+  app.use(selectLinkedImage);
   app.use(editContent);
   app.use(saveContent);
   app.use(getSettings);

@@ -5,6 +5,7 @@ import promisePipe from 'promisepipe';
 import { withDir } from 'tmp-promise';
 import scopackager from 'simple-scorm-packager';
 import HtmlExporter from '@lumieducation/h5p-html-exporter';
+import protectHtmlExport from './protect_html_export';
 import {
   IUser,
   H5PEditor,
@@ -15,6 +16,7 @@ import { Context } from '../boot';
 import scormTemplate from './templates/scorm';
 import simpleTemplate from './templates/simple';
 import reporterTemplate from './templates/reporter';
+import exportLinkedImages from './export_linked_images';
 
 // const t = i18next.getFixedT(null, 'lumi');
 
@@ -192,6 +194,9 @@ async function exportHtmlExternal(
   }
   // eslint-disable-next-line no-restricted-syntax
   for (const filename of contentFiles) {
+    // Linked local images are file: URLs, not H5P content-storage paths.
+    // exportLinkedImages handles them after the HTML is assembled.
+    if (/^file:/i.test(filename)) continue;
     const fn = _path.join(dir, basename, filename);
     // eslint-disable-next-line no-await-in-loop
     await fsExtra.mkdirp(_path.dirname(fn));
@@ -242,7 +247,11 @@ async function exportHtmlExternal(
   const fixedHtml = headEnd < 0
     ? optimizedHtml
     : optimizedHtml.slice(0, headEnd) + externalPathFix + optimizedHtml.slice(headEnd);
-  await fsExtra.writeFile(path, await addHotspotLightbox(fixedHtml));
+  const withLinked = await exportLinkedImages(
+    fixedHtml, path, _path.join(dir, basename, 'linked-images'),
+    `${basename}/linked-images/`
+  );
+  await fsExtra.writeFile(path, await addHotspotLightbox(withLinked));
 }
 
 /**
@@ -274,6 +283,7 @@ export default async function exportH5P(
     restrictWidthAndCenter: boolean;
     showEmbed: boolean;
     showRights: boolean;
+    requireVisitorKey?: boolean;
   }
 ): Promise<void> {
   let customCss: string;
@@ -318,7 +328,8 @@ export default async function exportH5P(
       showFrame: options.showEmbed || options.showRights,
       showLicenseButton: options.showRights
     });
-    await fsExtra.writeFile(filePath, await addHotspotLightbox(html));
+    const withLinked = await exportLinkedImages(html, filePath);
+    await fsExtra.writeFile(filePath, await addHotspotLightbox(withLinked));
   } else if (options.format === 'external') {
     await exportHtmlExternal(
       htmlExporter,
@@ -346,5 +357,8 @@ export default async function exportH5P(
         masteryScore: options.masteryScore
       }
     );
+  }
+  if (options.requireVisitorKey && options.format !== 'scorm') {
+    await protectHtmlExport(filePath);
   }
 }

@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import { Context } from '../boot';
 import User from '../models/User';
 import getUbernameFromH5pJson from './get_ubername_from_h5p_json';
+import restoreLinkedImages from './restore_linked_images';
 
 interface Result {
   id: string;
@@ -21,6 +22,8 @@ export default async function content_import(
       buffer,
       new User()
     );
+
+    await restoreLinkedImages(file_path, parameters);
 
     const id = await ctx.h5pEditor.saveOrUpdateContent(
       undefined,

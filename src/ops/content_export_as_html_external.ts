@@ -14,6 +14,7 @@ export default async function content_export_as_html_external(
     restrictWidthAndCenter: boolean;
     showEmbed: boolean;
     showRights: boolean;
+    requireVisitorKey?: boolean;
   }
 ): Promise<void> {
   context.log.debug(`ops:content_export_as_html_external`, {
